@@ -1,0 +1,304 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{hyperref}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\N}{\mathbb{N}}
+
+\title{Disproof of Conjecture 00000009614:\\
+equal Perron eigenvalues do not force isomorphic dimension groups}
+\author{jilint777}
+\date{2026-10-04}
+
+\begin{document}
+\sloppy
+\maketitle
+
+\begin{abstract}
+Conjecture 00000009614 asserts that the dimension groups of two mixing shifts of
+finite type are order-isomorphic \emph{if and only if} their Perron eigenvalues
+$\lambda_A,\lambda_B$ generate the same real number field with agreeing unit group
+cosets. We refute the ``if'' direction. The full $4$-shift, $A=[4]$, and the edge
+shift of $B=\left(\begin{smallmatrix}3&1\\1&3\end{smallmatrix}\right)$ are mixing
+and have the same Perron eigenvalue $\lambda_A=\lambda_B=4$, so every reading of
+the right-hand side holds. But $\Delta_A\cong\Z[1/4]$ has rank $1$, while
+$\Delta_B$ has rank $2$. So the two dimension groups are not even isomorphic as
+abstract groups. The disproof is formalized in Lean~4 (core library only).
+\end{abstract}
+
+\section{The conjecture and the clause we refute}
+\begin{quote}
+\emph{Definition:} The dimension group of an SFT is the ordered
+$K_0(\Z^nA,\Z^n_+)$, whose ordered isomorphism type is a flow invariant.
+\emph{Conjecture:} The dimension groups of two mixing SFTs are order-isomorphic if
+and only if the Perron eigenvalues $\lambda_A$ and $\lambda_B$ generate the same
+real algebraic number field with agreeing unit group cosets; explicit examples of
+equal entropy over different fields are given by an explicit criterion for coprime
+Perron numbers.
+\end{quote}
+The Chinese version says the same. The conjecture is a biconditional. We refute the
+implication
+\begin{equation}\label{eq:if}
+\bigl[\text{$\lambda_A$, $\lambda_B$ generate the same field with agreeing unit cosets}\bigr]
+\;\Longrightarrow\;(\Delta_A,\Delta_A^+)\cong(\Delta_B,\Delta_B^+),
+\end{equation}
+which makes the biconditional, and hence the conjecture, false. We do not use the
+side remark about flow invariance, and we do not need the final clause about
+``explicit examples''.
+
+\section{Definitions}
+Let $M$ be an $n\times n$ nonnegative integer matrix and $X_M$ its edge shift. We
+use row vectors, as in Lind--Marcus~\cite{lm}.
+
+\begin{definition}[Dimension group]\label{def:dg}
+$\Delta_M=\varinjlim(\Z^n\xrightarrow{M}\Z^n\xrightarrow{M}\cdots)$. Concretely, its
+elements are classes $[v,k]$ of pairs $(v,k)\in\Z^n\times\N$, where
+\[
+(v,k)\sim(w,l)\iff vM^{l+t}=wM^{k+t}\ \text{for some }t\ge0
+\]
+(think of $[v,k]$ as ``$vM^{-k}$''). Addition is
+$[u,k]+[v,l]=[uM^l+vM^k,\,k+l]$, the zero is $[0,0]$, and $-[v,k]=[-v,k]$. The
+positive cone is $\Delta_M^+=\{[v,k]: vM^t\in\Z^n_{\ge0}\text{ for some }t\}$.
+The shift map is $\delta_M[v,k]=[vM,k]$.
+\end{definition}
+
+This is Krieger's dimension group, i.e.\ the ordered $K_0$ in the conjecture. In
+\cite[\S7.5]{lm} the same group is realized inside $\Q^n$: if $R_M$ is the eventual
+range of $M$ (the image of $\Q^n$ under $M^n$), then
+$\Delta_M\cong\{x\in R_M: xM^k\in\Z^n\text{ for some }k\}$ via
+$[v,k]\mapsto vM^n(M|_{R_M})^{-n-k}$. We use the direct limit, and in
+Section~\ref{sec:er} we repeat the argument in the eventual-range model, so the
+result does not depend on which model is used. Both of our matrices are symmetric,
+so row and column conventions (that is, $\Delta_M$ versus $\Delta_{M^{\mathsf T}}$)
+agree.
+
+\begin{lemma}\label{lem:group}
+$\sim$ is an equivalence relation. Addition and negation are well defined, and
+$\Delta_M$ is an abelian group.
+\end{lemma}
+\begin{proof}
+Write $\pi_t(v)=vM^t$. Then $\pi_{s+t}=\pi_t\circ\pi_s$ and each $\pi_t$ is
+additive. Reflexivity and symmetry are clear. For transitivity, suppose
+$uM^{l+t_1}=vM^{k+t_1}$ and $vM^{m+t_2}=wM^{l+t_2}$. Then with $t=l+t_1+t_2$,
+\[
+uM^{m+t}=(uM^{l+t_1})M^{m+t_2}=vM^{k+t_1+m+t_2}=(vM^{m+t_2})M^{k+t_1}=wM^{k+t}.
+\]
+If $(u,k)\sim(u',k')$ via $t$, then $(uM^l+vM^k,k+l)\sim(u'M^l+vM^{k'},k'+l)$
+via the same $t$. Both sides become $uM^{k'+t+2l}+vM^{k+k'+l+t}$ after
+multiplying by $M^{k'+l+t}$, respectively $M^{k+l+t}$. The sum is symmetric up to
+$\sim$, so it is also well defined in the second argument. Negation is similar. Two
+identities make the group axioms immediate:
+$[v,k]=[vM^s,k+s]$, and $[u,k]+[v,k]=[u+v,k]$. With these, any finitely many
+elements can be brought to a common level $k$, where addition is addition in
+$\Z^n$.
+\end{proof}
+
+\begin{definition}
+An \emph{order isomorphism} $(\Delta_M,\Delta_M^+)\cong(\Delta_N,\Delta_N^+)$ is a
+bijective additive map $f$ with $f(\Delta_M^+)=\Delta_N^+$. A \emph{group
+isomorphism} is a bijective additive map. An isomorphism of dimension triples also
+requires $f\delta_M=\delta_Nf$.
+\end{definition}
+Triple isomorphism implies order isomorphism, which implies group isomorphism. We
+show that \emph{no group isomorphism} exists, which rules out all three.
+
+A matrix $M\ge0$ is \emph{primitive} if some power $M^k$ ($k\ge1$) is entrywise
+positive. For an essential matrix, $X_M$ is mixing if and only if $M$ is primitive
+\cite[\S4.5]{lm}. The \emph{Perron eigenvalue} $\lambda_M$ is the spectral radius.
+By the Perron--Frobenius theorem it is the unique eigenvalue with a positive
+eigenvector, and $h(X_M)=\log\lambda_M$ \cite[\S4.2--4.4]{lm}.
+
+\section{The example}
+Let
+\[
+A=\begin{pmatrix}4\end{pmatrix},\qquad B=\begin{pmatrix}3&1\\1&3\end{pmatrix}.
+\]
+$X_A$ is the full $4$-shift.
+
+\begin{proposition}\label{prop:same}
+$A$ and $B$ are primitive, so $X_A$ and $X_B$ are mixing SFTs. Also
+$\lambda_A=\lambda_B=4$, and $h(X_A)=h(X_B)=\log4$.
+\end{proposition}
+\begin{proof}
+Both matrices are entrywise positive. $(1)A=4(1)$ and $(1,1)B=4(1,1)$ with positive
+eigenvectors. Also $(1,-1)B=2(1,-1)$, so $\operatorname{spec}B=\{4,2\}$ and
+$\chi_B(x)=x^2-6x+8=(x-4)(x-2)$, with spectral radius $4$. The number of paths of
+length $k$ is $\sum_{i,j}(A^k)_{ij}=4^k$ and $\sum_{i,j}(B^k)_{ij}=2\cdot4^k$,
+because $B$ has all column sums equal to $4$.
+\end{proof}
+
+\paragraph{Every reading of the right-hand side holds.} The right-hand side of
+\eqref{eq:if} is a condition on the pair $(\lambda_A,\lambda_B)$. Here
+$\lambda_A=\lambda_B=4$, so the condition holds under every interpretation that is
+satisfied by two equal numbers. In detail:
+\begin{itemize}
+\item ``Generate the same field'': $\Q(\lambda_A)=\Q(4)=\Q=\Q(\lambda_B)$.
+\item ``Agreeing unit group cosets'': with $K=\Q$ and unit group
+$U_K=\mathcal O_K^\times=\{\pm1\}$, every reasonable reading holds trivially for equal
+numbers. This includes $\lambda_AU_K=\lambda_BU_K$, $\lambda_A/\lambda_B\in U_K$, the
+classes of $\lambda_A,\lambda_B$ in $K^\times/U_K$ agreeing, and the same with $U_K$
+replaced by any subgroup (units of an order, totally positive units, \dots).
+\item A stronger reading that also compares the Perron eigenvectors (the ideal class
+of the module spanned by the eigenvector entries, which is relevant for shift
+equivalence when the characteristic polynomial is irreducible) is still satisfied. The normalized
+eigenvectors $(1)$ and $(1,1)$ both have entries generating the unit ideal of $\Z$,
+so both classes are trivial.
+\item Equal entropy: $h(X_A)=h(X_B)=\log4$.
+\end{itemize}
+In the Lean formalization this is a hypothesis: the right-hand side is an
+\emph{arbitrary} relation $\mathrm{Cond}$ with $\mathrm{Cond}(x,x)$ for all $x$.
+
+\section{The dimension groups have different ranks}
+Write $a\cdot x$ for the $a$-fold sum ($a\in\Z$). Two elements $x,y$ of an abelian
+group are \emph{independent} if $ax+by=0$ with $a,b\in\Z$ forces $a=b=0$.
+
+\begin{lemma}[$\Delta_A$ has rank one]\label{lem:rank1}
+Any two elements of $\Delta_A$ are dependent. More generally this holds for any
+$1\times1$ matrix $M$.
+\end{lemma}
+\begin{proof}
+Let $p=[u,k]$, $q=[w,l]$ with $u,w\in\Z$. Lift both to level $K=k+l$:
+$p=[\mu,K]$, $q=[\nu,K]$ with $\mu=uM^l$, $\nu=wM^k\in\Z$. At a common level,
+integer combinations are computed on numerators:
+$a p+bq=[a\mu+b\nu,K]$. If $\mu=0$ then $1\cdot p+0\cdot q=0$. Otherwise
+$(a,b)=(\nu,-\mu)\ne(0,0)$ gives $\nu p-\mu q=[\nu\mu-\mu\nu,K]=0$.
+\end{proof}
+(In fact $[u,k]\mapsto u/4^k$ is an isomorphism $\Delta_A\cong\Z[1/4]$, with
+$\Delta_A^+=\Z[1/4]_{\ge0}$. We do not need this.)
+
+\begin{lemma}[$\Delta_B$ has rank at least two]\label{lem:rank2}
+$x=[e_1,0]$ and $y=[e_2,0]$ are independent in $\Delta_B$.
+\end{lemma}
+\begin{proof}
+$ax+by=[(a,b),0]$. If this is $0=[(0,0),0]$, then $(a,b)B^t=(0,0)$ for some $t$. Now
+$vB=wB$ means $3v_1+v_2=3w_1+w_2$ and $v_1+3v_2=w_1+3w_2$, hence $v=w$, since
+$\det B=8\ne0$. By induction $B^t$ is injective on $\Z^2$, so $(a,b)=(0,0)$.
+\end{proof}
+
+\begin{theorem}\label{thm:main}
+There is no injective additive map $\Delta_B\to\Delta_A$. In particular $\Delta_A$
+and $\Delta_B$ are not isomorphic as groups. A fortiori
+$(\Delta_A,\Delta_A^+)\not\cong(\Delta_B,\Delta_B^+)$ as ordered groups, and the
+dimension triples are not isomorphic.
+\end{theorem}
+\begin{proof}
+Let $f$ be additive and injective, and let $x,y$ be as in Lemma~\ref{lem:rank2}. By
+Lemma~\ref{lem:rank1} there are $(a,b)\neq(0,0)$ with $af(x)+bf(y)=0$, so
+$f(ax+by)=0=f(0)$, and hence $ax+by=0$, contradicting Lemma~\ref{lem:rank2}. An
+isomorphism $\Delta_A\to\Delta_B$ would have an additive injective inverse.
+\end{proof}
+
+\begin{corollary}
+Implication \eqref{eq:if} is false for $A=[4]$ and
+$B=\left(\begin{smallmatrix}3&1\\1&3\end{smallmatrix}\right)$, under every reading of
+its hypothesis that holds when $\lambda_A=\lambda_B$, and for every notion of
+isomorphism (group, ordered group, dimension triple). Therefore Conjecture
+00000009614 is false.
+\end{corollary}
+
+\section{Robustness}\label{sec:er}
+\paragraph{Eventual-range model.} In the model of \cite[\S7.5]{lm} the argument is
+even more direct. $R_A=\Q$ and $\Delta_A=\{x\in\Q:4^kx\in\Z\text{ for some
+}k\}=\Z[1/4]$. Any two elements $m/4^k$ and $m'/4^{k'}$ satisfy
+$m'4^k\cdot\frac{m}{4^k}-m4^{k'}\cdot\frac{m'}{4^{k'}}=0$. Since $\det B=8\ne0$, we
+have $R_B=\Q^2$ and $\Z^2\subseteq\Delta_B\subseteq\Q^2$. So
+$\operatorname{rank}\Delta_B=\dim_\Q(\Delta_B\otimes\Q)=2\neq1=\operatorname{rank}\Delta_A$.
+Rank is an invariant of abstract abelian groups.
+
+\paragraph{A second obstruction (dimension triples).} By Krieger's theorem
+\cite[\S7.5]{lm}, $(\Delta_A,\Delta_A^+,\delta_A)\cong(\Delta_B,\Delta_B^+,\delta_B)$
+if and only if $A$ and $B$ are shift equivalent. Shift-equivalent matrices have the
+same nonzero spectrum \cite[\S7.4]{lm}. Here the nonzero spectra are $\{4\}$ and
+$\{4,2\}$. Equivalently, $\operatorname{tr}A^k=4^k\neq4^k+2^k=\operatorname{tr}B^k$,
+which counts the period-$k$ points. This independent argument covers the triple
+reading. The rank argument covers all readings.
+
+\paragraph{Mixing.} Both matrices are positive, so the shifts are mixing under any
+presentation (edge shift; $X_A$ is also the full $4$-shift as a vertex shift).
+
+\paragraph{Why the conjecture fails.} The rank of $\Delta_M$ is the number of nonzero
+eigenvalues of $M$ (with algebraic multiplicity). Any condition that depends only
+on $\lambda_M$ ignores the non-Perron part of the spectrum. Our $B$ has reducible
+characteristic polynomial. The conjecture places no restriction on the
+characteristic polynomial, and we do not claim anything about a variant restricted
+to irreducible characteristic polynomials.
+
+\section{Lean formalization}
+The directory \texttt{lean4/} is a self-contained Lean~4.19.0 project (core library
+only, no Mathlib). File \texttt{Main.lean}, namespace \texttt{DimGroup}:
+\begin{itemize}
+\item Vectors are \texttt{Fin n -> Int} and matrices are \texttt{Fin n -> Fin n -> Int}.
+\texttt{rmul M v} is $vM$ (row vector) and \texttt{pw M t v} is $vM^t$, for
+arbitrary $n$.
+\item \texttt{Rel M} is the relation of Definition~\ref{def:dg}. Its equivalence is
+proved, and \texttt{DG M} is the quotient type $\Delta_M$. \texttt{Add},
+\texttt{Neg} and \texttt{Zero} are defined on the quotient, and well-definedness is
+proved. \texttt{add\_comm'}, \texttt{add\_assoc'}, \texttt{zero\_add'} and
+\texttt{neg\_add'} prove the abelian group axioms. \texttt{Pos M} is the positive
+cone.
+\item \texttt{GroupIso} (additive bijection) and \texttt{OrderIso} (additionally
+$x\in\Delta^+\iff f(x)\in\Delta^+$) are structures. \texttt{OrderIso.refl} shows
+these notions are not vacuous.
+\item \texttt{rank\_one}: for every $1\times1$ matrix, any $p,q$ satisfy
+$(a+1)p+(b+1)q=(c+1)p+(d+1)q$ for some $(a,b)\ne(c,d)$. This is the integer
+relation with its positive and negative parts separated, so that only positive
+multiples \texttt{nsm1} are needed. \texttt{rank\_two}: in $\Delta_B$, such an
+identity for $[e_1,0],[e_2,0]$ forces $(a,b)=(c,d)$.
+\texttt{no\_injective\_hom}, \texttt{not\_groupIso\_AB} and
+\texttt{not\_orderIso\_AB} prove Theorem~\ref{thm:main}.
+\item \texttt{Primitive M} means $M\ge0$ and some $M^k$, $k\ge1$, is positive.
+\texttt{IsPerronEig M lam} means there is a positive $v$ with $vM=\lambda v$. These
+are proved for $A,B$ with $\lambda=4$ (\texttt{primitive\_A}, \texttt{perron\_B},
+\dots). \texttt{second\_eig\_B} gives the eigenvalue $2$, and
+\texttt{pathCount\_A}, \texttt{pathCount\_B} give the path counts $4^k$ and
+$2\cdot4^k$.
+\item \texttt{IfDirection Cond} is the statement ``for all $n,m$ and all
+$A\in\Z^{n\times n}$, $B\in\Z^{m\times m}$ primitive with integer Perron
+eigenvalues $\lambda_A,\lambda_B$ satisfying $\mathrm{Cond}(\lambda_A,\lambda_B)$,
+$\Delta_A$ and $\Delta_B$ are order-isomorphic''. This is a special case of the
+``if'' direction. \texttt{conjecture\_00000009614\_false} proves
+$\neg$\texttt{IfDirection Cond} for every reflexive \texttt{Cond}.
+\texttt{conjecture\_00000009614\_iff\_false} refutes the biconditional,
+\texttt{conjecture\_00000009614\_group\_false} refutes the version with mere group
+isomorphism, and \texttt{conjecture\_00000009614\_false\_Q} instantiates the
+concrete reading $\lambda_A=\pm\lambda_B$ (field $\Q$, units $\{\pm1\}$).
+\texttt{nonvacuous} records that all hypotheses are satisfiable.
+\end{itemize}
+Not formalized: the Perron--Frobenius theorem itself (that a positive eigenvector
+characterizes the spectral radius, used only to identify \texttt{IsPerronEig} with
+``Perron eigenvalue''; for $B$ the full spectrum $\{4,2\}$ is exhibited by
+eigenvectors in Lean), the identification of the direct limit with the
+eventual-range model, and Krieger's theorem (used only in the second, redundant
+obstruction). \texttt{lake build} succeeds with no warnings. There is no
+\texttt{sorry}, no \texttt{native\_decide}, and no added axiom. \texttt{\#print
+axioms} shows only \texttt{propext} and \texttt{Quot.sound}.
+
+\section{Reproduction}
+\begin{verbatim}
+cd lean4 && lake build     # Lean 4.19.0, core only
+python3 verify.py          # Python 3 standard library
+pdflatex report.tex
+\end{verbatim}
+\texttt{verify.py} checks the same facts independently, with exact rational
+arithmetic. It computes the characteristic polynomials, the spectral radius (also by
+power iteration), and the path counts. It tests rank one and rank two in the
+eventual-range model, and runs a brute-force check of the identifications in the
+direct limit. It also verifies the trace and spectrum invariants.
+
+\begin{thebibliography}{9}
+\bibitem{lm} D.~Lind and B.~Marcus, \emph{An Introduction to Symbolic Dynamics and
+Coding}, Cambridge University Press, 1995 (\S4.2--4.5 Perron--Frobenius theory and
+mixing; \S7.4 shift equivalence; \S7.5 dimension groups and Krieger's theorem).
+\bibitem{kr} W.~Krieger, On dimension functions and topological Markov chains,
+\emph{Invent. Math.} 56 (1980), 239--250.
+\end{thebibliography}
+\end{document}

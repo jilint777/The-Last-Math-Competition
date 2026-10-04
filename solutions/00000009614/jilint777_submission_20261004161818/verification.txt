@@ -1,0 +1,41 @@
+== lake build (fresh, Lean 4.19.0)
+info: dimensionGroups: no previous manifest, creating one from scratch
+info: toolchain not updated; already up-to-date
+ℹ [2/3] Built Main
+info: ././././Main.lean:594:0: 'DimGroup.add_assoc'' depends on axioms: [propext, Quot.sound]
+info: ././././Main.lean:595:0: 'DimGroup.neg_add'' depends on axioms: [propext, Quot.sound]
+info: ././././Main.lean:596:0: 'DimGroup.rank_one' depends on axioms: [propext, Quot.sound]
+info: ././././Main.lean:597:0: 'DimGroup.rank_two' depends on axioms: [propext, Quot.sound]
+info: ././././Main.lean:598:0: 'DimGroup.no_injective_hom' depends on axioms: [propext, Quot.sound]
+info: ././././Main.lean:599:0: 'DimGroup.not_orderIso_AB' depends on axioms: [propext, Quot.sound]
+info: ././././Main.lean:600:0: 'DimGroup.pathCount_B' depends on axioms: [propext, Quot.sound]
+info: ././././Main.lean:601:0: 'DimGroup.conjecture_00000009614_false' depends on axioms: [propext, Quot.sound]
+info: ././././Main.lean:602:0: 'DimGroup.conjecture_00000009614_iff_false' depends on axioms: [propext, Quot.sound]
+info: ././././Main.lean:603:0: 'DimGroup.conjecture_00000009614_group_false' depends on axioms: [propext, Quot.sound]
+info: ././././Main.lean:604:0: 'DimGroup.nonvacuous' depends on axioms: [propext, Quot.sound]
+Build completed successfully.
+exit 0
+
+== forbidden-token scan
+none
+
+== python3 verify.py
+ok: A and B are entrywise positive, hence primitive (mixing edge shifts)
+ok: charpoly(A) = x - 4
+ok: charpoly(B) = x^2 - 6x + 8 = (x-4)(x-2)
+ok: eigenvalues of B are 2 and 4 (both rational)
+ok: Perron eigenvalue lambda_B = 4 = lambda_A
+ok: positive eigenvectors: (1) A = 4 (1), (1,1) B = 4 (1,1)
+ok: (1,-1) B = 2 (1,-1)
+ok: path counts 4^k and 2*4^k for k < 25 (entropy log 4 for both)
+ok: power iteration on B converges to 4.0
+ok: det B = 8 != 0, so R_B = Q^2 and Delta_B contains Z^2
+ok: e1, e2 in Delta_B are linearly independent: rank Delta_B = 2
+ok: 2000 random pairs in Delta_A = Z[1/4] satisfy a nontrivial integer relation (rank 1)
+ok: Delta_A = Z[1/4] membership sanity
+ok: in lim(Z^2, B): (a+1)e1+(b+1)e2 ~ (c+1)e1+(d+1)e2 only if equal (a,b,c,d < 6, t <= 12)
+ok: in lim(Z, 4): every sampled pair of classes satisfies a nontrivial relation
+ok: nonzero spectra {4} and {2,4} differ
+ok: tr(A^k) = 4^k != 4^k + 2^k = tr(B^k) for 1 <= k < 30
+ALL CHECKS PASSED
+exit 0
