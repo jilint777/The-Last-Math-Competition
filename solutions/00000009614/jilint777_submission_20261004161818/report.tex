@@ -32,7 +32,12 @@ shift of $B=\left(\begin{smallmatrix}3&1\\1&3\end{smallmatrix}\right)$ are mixin
 and have the same Perron eigenvalue $\lambda_A=\lambda_B=4$, so every reading of
 the right-hand side holds. But $\Delta_A\cong\Z[1/4]$ has rank $1$, while
 $\Delta_B$ has rank $2$. So the two dimension groups are not even isomorphic as
-abstract groups. The disproof is formalized in Lean~4 (core library only).
+abstract groups. The variant restricted to irreducible characteristic polynomials
+also fails. $A'=\left(\begin{smallmatrix}4&1\\15&4\end{smallmatrix}\right)$ and
+$B'=\left(\begin{smallmatrix}4&3\\5&4\end{smallmatrix}\right)$ have the same
+irreducible characteristic polynomial $t^2-8t+1$. Their dimension groups are both
+$\Z^2$, but they are not order-isomorphic. The main disproof is formalized in Lean~4
+(core library only).
 \end{abstract}
 
 \section{The conjecture and the clause we refute}
@@ -51,9 +56,11 @@ implication
 \bigl[\text{$\lambda_A$, $\lambda_B$ generate the same field with agreeing unit cosets}\bigr]
 \;\Longrightarrow\;(\Delta_A,\Delta_A^+)\cong(\Delta_B,\Delta_B^+),
 \end{equation}
-which makes the biconditional, and hence the conjecture, false. We do not use the
-side remark about flow invariance, and we do not need the final clause about
-``explicit examples''.
+which makes the biconditional, and hence the conjecture, false. We do not need the
+final clause about ``explicit examples''. We neither use nor endorse the side remark
+that the ordered isomorphism type is a flow invariant. The standard complete flow
+invariant of irreducible SFTs is the Bowen--Franks group together with the sign of
+$\det(I-A)$ (Franks); the dimension group is a shift-equivalence invariant.
 
 \section{Definitions}
 Let $M$ be an $n\times n$ nonnegative integer matrix and $X_M$ its edge shift. We
@@ -228,9 +235,98 @@ presentation (edge shift; $X_A$ is also the full $4$-shift as a vertex shift).
 \paragraph{Why the conjecture fails.} The rank of $\Delta_M$ is the number of nonzero
 eigenvalues of $M$ (with algebraic multiplicity). Any condition that depends only
 on $\lambda_M$ ignores the non-Perron part of the spectrum. Our $B$ has reducible
-characteristic polynomial. The conjecture places no restriction on the
-characteristic polynomial, and we do not claim anything about a variant restricted
-to irreducible characteristic polynomials.
+characteristic polynomial. The conjecture places no such restriction, but
+Section~\ref{sec:irr} shows that the irreducible case fails as well. There the
+obstruction is arithmetic: an ideal class.
+
+\paragraph{The converse direction.} The ``only if'' direction is also doubtful under
+the literal coset reading, although we do not need this. For example,
+$\Delta_{[2]}=\Z[1/2]=\Z[1/4]=\Delta_{[4]}$ as ordered subgroups of $\Q$, yet
+$2\cdot\{\pm1\}\neq4\cdot\{\pm1\}$.
+
+\section{The irreducible variant also fails}\label{sec:irr}
+Let
+\[
+A'=\begin{pmatrix}4&1\\15&4\end{pmatrix},\qquad B'=\begin{pmatrix}4&3\\5&4\end{pmatrix}.
+\]
+Both matrices are positive, hence primitive. Both have trace $8$ and determinant $1$,
+so both have characteristic polynomial $t^2-8t+1$. This polynomial is irreducible
+over $\Q$ (its discriminant $60$ is not a square). So
+$\lambda_{A'}=\lambda_{B'}=\lambda=4+\sqrt{15}$, a unit of $\Z[\sqrt{15}]$ with
+conjugate $\lambda'=4-\sqrt{15}\in(0,1)$. Again every reading of the right-hand
+side of \eqref{eq:if} holds, since the eigenvalues are equal. Here even the
+characteristic polynomials, and hence the zeta functions, coincide.
+
+The right (column) Perron eigenvectors are
+\[
+A'r_A=\lambda r_A,\quad r_A=(1,\sqrt{15})^{\mathsf T};\qquad
+B'r_B=\lambda r_B,\quad r_B=(3,\sqrt{15})^{\mathsf T}.
+\]
+
+\begin{lemma}\label{lem:cone}
+Let $M\in\{A',B'\}$ with Perron eigenvector $r$. Then $[v,k]\mapsto vM^{-k}$ is a
+group isomorphism $\Delta_M\cong\Z^2$, carrying $\Delta_M^+$ onto
+$C_r=\{x\in\Z^2:x\cdot r>0\}\cup\{0\}$.
+\end{lemma}
+\begin{proof}
+Since $\det M=1$, $M^{-1}$ is an integer matrix. Then $[v,k]\mapsto vM^{-k}$ is well
+defined, additive, and bijective, with inverse $x\mapsto[x,0]$. An element
+$x\ne0$ is positive iff $xM^t\ge0$ for some $t$.
+
+Suppose $xM^t\geq0$. Since $xM^t\neq0$ and $r>0$, we get
+$0<(xM^t)\cdot r=\lambda^t(x\cdot r)$, so $x\cdot r>0$.
+
+Conversely, let $\ell,\ell'$ be left eigenvectors for $\lambda,\lambda'$, with
+$\ell>0$. Then $\ell'\cdot r=0$. Write $x=\alpha\ell+\beta\ell'$. Then
+$x\cdot r=\alpha(\ell\cdot r)$, so $x\cdot r>0$ gives $\alpha>0$. Hence
+$xM^t=\alpha\lambda^t\ell+\beta\lambda'^t\ell'$ is entrywise positive for large
+$t$, because $\lambda>1>|\lambda'|$. Finally, $x\cdot r\neq0$ for every
+$x\in\Z^2\setminus\{0\}$, because $\sqrt{15}$ is irrational.
+\end{proof}
+
+\begin{theorem}\label{thm:irr}
+$(\Delta_{A'},\Delta_{A'}^+)\not\cong(\Delta_{B'},\Delta_{B'}^+)$ as ordered
+groups (although $\Delta_{A'}\cong\Delta_{B'}\cong\Z^2$ as groups).
+\end{theorem}
+\begin{proof}
+By Lemma~\ref{lem:cone}, an order isomorphism is a map $x\mapsto xg$ with
+$g\in GL_2(\Z)$ and $C_{r_A}g=C_{r_B}$. Since $(xg)\cdot r_B=x\cdot(gr_B)$, this
+says that $x\cdot r_A>0\iff x\cdot s>0$ for all $x\in\Z^2$, where $s=gr_B\neq0$.
+
+Suppose $s$ is not a positive multiple of $r_A$. Then the set
+$\{x\in\mathbb R^2:x\cdot r_A>0>x\cdot s\}$ is a nonempty open cone: it is an
+open half-plane if $s\in\mathbb R_{<0}r_A$, and an open sector otherwise. Every
+nonempty open cone contains integer points (scale up a rational point in it). This
+contradicts the equivalence above. Therefore $gr_B=c\,r_A$ with $c>0$.
+
+Write $g=\left(\begin{smallmatrix}a&b\\c'&d\end{smallmatrix}\right)$. Then
+$gr_B=(3a+b\sqrt{15},\,3c'+d\sqrt{15})$ and
+$c\,r_A=(c,\,c\sqrt{15})$. So $c=3a+b\sqrt{15}$, and
+$3c'+d\sqrt{15}=c\sqrt{15}=15b+3a\sqrt{15}$. Since $\sqrt{15}\notin\Q$, this
+gives $c'=5b$ and $d=3a$, hence
+\[
+\det g=3a^2-5b^2\equiv3a^2\pmod5.
+\]
+The squares mod $5$ are $0,1,4$, so $3a^2\bmod5\in\{0,3,2\}$, and
+$\det g\neq\pm1$. This is a contradiction.
+\end{proof}
+
+\begin{remark}
+In ideal-theoretic terms, the eigenvector entries span the $\Z[\sqrt{15}]$-ideals
+$\langle1,\sqrt{15}\rangle=\Z[\sqrt{15}]$ and $\langle3,\sqrt{15}\rangle$.
+The latter has norm $3$ and is not principal, because $x^2-15y^2=\pm3$ has no
+solution modulo $5$. Equivalently, the slopes $\sqrt{15}=[3;\overline{1,6}]$ and
+$\sqrt{15}/3=[1;\overline{3,2}]$ have continued-fraction periods $(1,6)$ and
+$(2,3)$, which are different cyclic sequences, so the two slopes are not
+$GL_2(\Z)$-equivalent (Serret). With the column convention (that is,
+$\Delta_{M^{\mathsf T}}$), the relevant eigenvectors become $(\sqrt{15},1)$ and
+$(\sqrt{15},3)$. These are the images of $r_A,r_B$ under the coordinate swap in
+$GL_2(\Z)$, so the same argument applies. Since the ordered groups differ, the
+dimension triples differ too, and $A'$, $B'$ are not shift equivalent.
+\end{remark}
+
+So Conjecture 00000009614 fails even when restricted to mixing SFTs whose matrices
+have the same irreducible characteristic polynomial.
 
 \section{Lean formalization}
 The directory \texttt{lean4/} is a self-contained Lean~4.19.0 project (core library
@@ -272,13 +368,21 @@ $\neg$\texttt{IfDirection Cond} for every reflexive \texttt{Cond}.
 isomorphism, and \texttt{conjecture\_00000009614\_false\_Q} instantiates the
 concrete reading $\lambda_A=\pm\lambda_B$ (field $\Q$, units $\{\pm1\}$).
 \texttt{nonvacuous} records that all hypotheses are satisfiable.
+\item Irreducible variant (arithmetic core only): \texttt{primitive\_A2} and
+\texttt{primitive\_B2} prove primitivity, and \texttt{charpoly\_A2\_B2} gives trace
+$8$ and determinant $1$ for both. \texttt{no\_GL2\_transport} proves that no integer
+matrix with determinant $\pm1$ satisfies $15b=3c'$ and $3a=d$, i.e.\ $3a^2-5b^2\neq\pm1$
+via residues mod $5$. Lemma~\ref{lem:cone} and the reduction of an order isomorphism
+to $gr_B\in\mathbb R_{>0}r_A$ are given in this report and checked in
+\texttt{verify.py}, but are not formalized.
 \end{itemize}
 Not formalized: the Perron--Frobenius theorem itself (that a positive eigenvector
 characterizes the spectral radius, used only to identify \texttt{IsPerronEig} with
 ``Perron eigenvalue''; for $B$ the full spectrum $\{4,2\}$ is exhibited by
 eigenvectors in Lean), the identification of the direct limit with the
 eventual-range model, and Krieger's theorem (used only in the second, redundant
-obstruction). \texttt{lake build} succeeds with no warnings. There is no
+obstruction). The cone description and the reduction in Section~\ref{sec:irr} are also
+not formalized. \texttt{lake build} succeeds with no warnings. There is no
 \texttt{sorry}, no \texttt{native\_decide}, and no added axiom. \texttt{\#print
 axioms} shows only \texttt{propext} and \texttt{Quot.sound}.
 
@@ -292,7 +396,15 @@ pdflatex report.tex
 arithmetic. It computes the characteristic polynomials, the spectral radius (also by
 power iteration), and the path counts. It tests rank one and rank two in the
 eventual-range model, and runs a brute-force check of the identifications in the
-direct limit. It also verifies the trace and spectrum invariants.
+direct limit. It also verifies the trace and spectrum invariants. For
+Section~\ref{sec:irr}, it checks:
+\begin{itemize}
+\item the characteristic polynomials and the eigenvectors, exactly in $\Q(\sqrt{15})$;
+\item the description of the cones, by iterating $xM^t$ for all $0<|x_i|\le15$;
+\item a brute force showing that no $g\in GL_2(\Z)$ with entries $|\cdot|\le6$
+($744$ matrices) carries either cone onto the other, using exact sign tests;
+\item the mod-$5$ facts and the continued-fraction periods.
+\end{itemize}
 
 \begin{thebibliography}{9}
 \bibitem{lm} D.~Lind and B.~Marcus, \emph{An Introduction to Symbolic Dynamics and

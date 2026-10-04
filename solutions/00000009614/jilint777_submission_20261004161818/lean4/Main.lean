@@ -589,6 +589,68 @@ theorem nonvacuous : Primitive matA ∧ Primitive matB ∧ IsPerronEig matA 4 �
     Nonempty (OrderIso matA matA) ∧ Nonempty (OrderIso matB matB) :=
   ⟨primitive_A, primitive_B, perron_A, perron_B, ⟨OrderIso.refl _⟩, ⟨OrderIso.refl _⟩⟩
 
+/-! ## The irreducible variant (arithmetic core only)
+
+`A' = [[4,1],[15,4]]` and `B' = [[4,3],[5,4]]` are positive, with the same irreducible
+characteristic polynomial `t² - 8t + 1` (trace 8, determinant 1), so `λ_A' = λ_B' = 4 + √15`.
+Since `det = 1`, `Δ = ℤ²` and the positive cone is `{v : v·r > 0} ∪ {0}` with `r` the right
+Perron eigenvector, `(1, √15)` resp. `(3, √15)` (report, Section 6).  An order isomorphism is a
+`g ∈ GL₂(ℤ)` with `g (3, √15) ∈ ℝ_{>0}·(1, √15)`.  Below: such `g` cannot exist. -/
+
+def matA2 : Mat 2 := fun i j => if i = 0 then (if j = 0 then 4 else 1) else (if j = 0 then 15 else 4)
+def matB2 : Mat 2 := fun i j => if i = 0 then (if j = 0 then 4 else 3) else (if j = 0 then 5 else 4)
+
+theorem rmul_two (M : Mat 2) (v : Vec 2) : rmul M v = fun j => v 0 * M 0 j + v 1 * M 1 j := by
+  funext j
+  simp [rmul, fsum]
+
+theorem primitive_two (M : Mat 2) (h : ∀ i j, 0 < M i j) : Primitive M := by
+  refine ⟨fun i j => Int.le_of_lt (h i j), 1, by decide, fun i j => ?_⟩
+  show 0 < rmul M (basis i) j
+  rw [rmul_two]
+  have h0 := h 0 j
+  have h1 := h 1 j
+  rcases fin2 i with rfl | rfl
+  · show 0 < (if (0 : Fin 2) = 0 then 1 else 0) * M 0 j + (if (0 : Fin 2) = 1 then 1 else 0) * M 1 j
+    rw [if_pos rfl, if_neg (by decide)]
+    omega
+  · show 0 < (if (1 : Fin 2) = 0 then 1 else 0) * M 0 j + (if (1 : Fin 2) = 1 then 1 else 0) * M 1 j
+    rw [if_neg (by decide), if_pos rfl]
+    omega
+
+theorem primitive_A2 : Primitive matA2 :=
+  primitive_two _ fun i j => by rcases fin2 i with rfl | rfl <;> rcases fin2 j with rfl | rfl <;> decide
+
+theorem primitive_B2 : Primitive matB2 :=
+  primitive_two _ fun i j => by rcases fin2 i with rfl | rfl <;> rcases fin2 j with rfl | rfl <;> decide
+
+/-- Same characteristic polynomial `t² - 8t + 1`: trace `8`, determinant `1`. -/
+theorem charpoly_A2_B2 :
+    matA2 0 0 + matA2 1 1 = 8 ∧ matA2 0 0 * matA2 1 1 - matA2 0 1 * matA2 1 0 = 1 ∧
+    matB2 0 0 + matB2 1 1 = 8 ∧ matB2 0 0 * matB2 1 1 - matB2 0 1 * matB2 1 0 = 1 := by decide
+
+theorem three_sq_mod5 (a : Int) : (3 * a * a) % 5 = 0 ∨ (3 * a * a) % 5 = 2 ∨ (3 * a * a) % 5 = 3 := by
+  have h : (3 * a * a) % 5 = (3 % 5 * (a % 5) % 5 * (a % 5)) % 5 := by
+    rw [Int.mul_emod, Int.mul_emod 3 a]
+  rw [h]
+  have : a % 5 = 0 ∨ a % 5 = 1 ∨ a % 5 = 2 ∨ a % 5 = 3 ∨ a % 5 = 4 := by omega
+  rcases this with h | h | h | h | h <;> rw [h] <;> decide
+
+/-- `3a² - 5b² ≠ ±1`. -/
+theorem norm_ne (a b : Int) : 3 * a * a - 5 * (b * b) ≠ 1 ∧ 3 * a * a - 5 * (b * b) ≠ -1 := by
+  have := three_sq_mod5 a
+  constructor <;> intro h <;> omega
+
+/-- No `g = [[a,b],[c,d]] ∈ GL₂(ℤ)` satisfies `g (3, √15) ∈ ℝ·(1, √15)`, i.e. (comparing
+coefficients of `1` and `√15`) `15 b = 3 c` and `3 a = d`. -/
+theorem no_GL2_transport (a b c d : Int) (h1 : 15 * b = 3 * c) (h2 : 3 * a = d) :
+    a * d - b * c ≠ 1 ∧ a * d - b * c ≠ -1 := by
+  have hc : c = 5 * b := by omega
+  subst hc; subst h2
+  have e : a * (3 * a) - b * (5 * b) = 3 * a * a - 5 * (b * b) := by
+    rw [Int.mul_left_comm a 3 a, Int.mul_left_comm b 5 b, Int.mul_assoc 3 a a]
+  rw [e]
+  exact norm_ne a b
 end DimGroup
 
 #print axioms DimGroup.add_assoc'
@@ -602,3 +664,6 @@ end DimGroup
 #print axioms DimGroup.conjecture_00000009614_iff_false
 #print axioms DimGroup.conjecture_00000009614_group_false
 #print axioms DimGroup.nonvacuous
+#print axioms DimGroup.primitive_B2
+#print axioms DimGroup.charpoly_A2_B2
+#print axioms DimGroup.no_GL2_transport

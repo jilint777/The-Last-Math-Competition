@@ -29,6 +29,40 @@ is false too.
   dimension triples means A and B are shift equivalent. Shift-equivalent matrices have the
   same nonzero spectrum, but here they are {4} and {4, 2}; equivalently tr Aᵏ = 4ᵏ ≠ 4ᵏ + 2ᵏ = tr Bᵏ.
 
+## The irreducible variant also fails (report §6)
+
+Take A' = [[4,1],[15,4]] and B' = [[4,3],[5,4]].
+
+- **Setup.** Both matrices are positive. Both have the same irreducible characteristic
+  polynomial t² − 8t + 1, so λ = 4 + √15 (a unit) and the zeta functions are equal.
+- **The groups.** Since det = 1, Δ = Z² for both. The positive cone is
+  {x : x·r > 0} ∪ {0}, where r is the right Perron eigenvector: (1, √15) for A' and
+  (3, √15) for B'.
+- **No order isomorphism.** An order isomorphism x ↦ xg (g ∈ GL₂(Z)) would need
+  g r_B ∈ R₊ r_A. That forces g = [[a,b],[5b,3a]] with det g = 3a² − 5b² ≡ 3a² (mod 5),
+  which lies in {0, 2, 3} mod 5, so det g ≠ ±1.
+- **Ideal-class view.** The ideal ⟨3, √15⟩ of Z[√15] is not principal, because
+  x² − 15y² = ±3 has no solution mod 5. Equivalently, the continued-fraction periods
+  (1,6) and (2,3) differ.
+- **Conventions.** The column convention leads to the same argument after a coordinate
+  swap.
+
+**Where each part is checked:**
+- **Lean (arithmetic core only):** primitivity (`primitive_A2`, `primitive_B2`), the
+  trace and determinant (`charpoly_A2_B2`), and `no_GL2_transport`, which says
+  15b = 3c ∧ 3a = d ⇒ det ≠ ±1.
+- **Report and `verify.py` only:**
+  - the description of the cone;
+  - the reduction of an order isomorphism to g r_B ∈ R₊ r_A;
+  - the brute force over all 744 matrices g ∈ GL₂(Z) with entries |·| ≤ 6;
+  - the continued fractions.
+
+The report also includes two remarks:
+- the "only if" direction is doubtful under the literal coset reading:
+  Δ_[2] = Z[1/2] = Δ_[4] as ordered groups, but 2·{±1} ≠ 4·{±1};
+- the side remark "the ordered isomorphism type is a flow invariant" is neither used nor
+  endorsed.
+
 ## Contents
 
 - `report.tex`, `report.pdf`: the complete proof, including the discussion of readings
@@ -40,7 +74,8 @@ is false too.
   - path counts;
   - rank 1 and rank 2 in the eventual-range model;
   - brute force over identifications in the direct limit;
-  - trace and spectrum invariants.
+  - trace and spectrum invariants;
+  - the irreducible variant (cones, GL₂(Z) brute force, mod-5 argument, continued fractions).
 - `verification.txt`: the fresh build log, forbidden-token scan and `verify.py` output.
 
 ## Lean (`lean4/Main.lean`, namespace `DimGroup`)
@@ -73,6 +108,8 @@ is false too.
   - `conjecture_00000009614_false_Q` handles the concrete reading λ_A = ±λ_B (field Q,
     units ±1).
   - `nonvacuous` records that all the hypotheses are satisfiable.
+- **Irreducible variant.** `primitive_A2`, `primitive_B2`, `charpoly_A2_B2` and
+  `no_GL2_transport` (the arithmetic core only; see above).
 
 The project has no `sorry`, no `native_decide` and no added axioms. `#print axioms` shows
 only `propext` and `Quot.sound`.
@@ -82,7 +119,9 @@ only `propext` and `Quot.sound`.
   spectral radius (for B, Lean exhibits both eigenvalues);
 - the isomorphism between the direct-limit model and the eventual-range model (the report
   gives the rank argument in both models);
-- Krieger's theorem, which is used only for the redundant second obstruction.
+- Krieger's theorem, which is used only for the redundant second obstruction;
+- for the irreducible variant: the description of the cone and the reduction of an order
+  isomorphism to g r_B ∈ R₊ r_A.
 
 ## Reproduce
 
@@ -115,6 +154,26 @@ pdflatex report.tex && pdflatex report.tex
 
 另一个独立的障碍：由 Krieger 定理，维数三元组同构等价于移位等价；而移位等价的矩阵有相同的非零谱，
 这里两者的非零谱分别是 {4} 和 {4,2}，不相同。
+
+**不可约特征多项式的情形同样不成立（报告第 6 节）。**
+
+取 A' = [[4,1],[15,4]] 与 B' = [[4,3],[5,4]]。
+
+- 两者都是正矩阵，特征多项式都是不可约的 t² − 8t + 1，因此 λ = 4 + √15，zeta 函数也相同。
+- det = 1，所以两者的维数群都是 Z²；正锥为 {x : x·r > 0} ∪ {0}，其中 r 为右 Perron 特征向量，
+  分别是 (1, √15) 与 (3, √15)。
+- 有序同构必须满足 g r_B ∈ R₊ r_A，由此 g = [[a,b],[5b,3a]]，det g = 3a² − 5b²；
+  模 5 它只能是 0、2、3，不可能等于 ±1。
+- 等价地说，Z[√15] 的理想 ⟨3, √15⟩ 不是主理想。
+
+其中，算术核心（no_GL2_transport）、本原性以及迹与行列式已在 Lean 中证明；
+正锥刻画与“有序同构 ⇒ g r_B ∈ R₊ r_A”这一约化只在报告和 verify.py 中给出
+（verify.py 还对 744 个元素绝对值不超过 6 的 GL₂(Z) 矩阵做了穷举检验）。
+
+另外两点说明：
+
+- 在字面的陪集解释下，“仅当”方向也可疑：Δ_[2] = Z[1/2] = Δ_[4]，但 2·{±1} ≠ 4·{±1}。
+- 我们既不使用也不认可“有序同构型是流不变量”这一旁注。
 
 **Lean 形式化（仅用 Lean 4.19.0 核心库）。**
 

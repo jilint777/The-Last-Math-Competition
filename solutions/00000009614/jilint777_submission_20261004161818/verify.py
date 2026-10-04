@@ -17,8 +17,13 @@ A = [4] (full 4-shift), B = [[3,1],[1,3]].
 4. Shift-equivalence invariants (second, independent obstruction for the
    dimension-triple reading): nonzero spectra {4} vs {4,2}, and the traces
    tr(A^k) = 4^k vs tr(B^k) = 4^k + 2^k differ for every k >= 1.
+5. Irreducible variant: A2 = [[4,1],[15,4]], B2 = [[4,3],[5,4]] (char poly t^2-8t+1,
+   lambda = 4 + sqrt15, det 1, Delta = Z^2).  Exact check of the positive cones
+   {v . r > 0} u {0}; brute force: no g in GL2(Z) with small entries maps one cone
+   onto the other; mod-5 norm argument; continued-fraction periods (1,6) vs (2,3).
 """
 
+import math
 import random
 from fractions import Fraction
 
@@ -184,5 +189,121 @@ for k in range(1, 30):
     tb = sum(matpow(B, k)[i][i] for i in range(2))
     assert ta == 4 ** k and tb == 4 ** k + 2 ** k and ta != tb
 check(True, "tr(A^k) = 4^k != 4^k + 2^k = tr(B^k) for 1 <= k < 30")
+
+# ---- 5. irreducible variant: A2 = [[4,1],[15,4]], B2 = [[4,3],[5,4]] ------------------
+A2 = [[4, 1], [15, 4]]
+B2 = [[4, 3], [5, 4]]
+check(charpoly(A2) == [1, -8, 1] and charpoly(B2) == [1, -8, 1],
+      "charpoly(A2) = charpoly(B2) = t^2 - 8t + 1 (irreducible: discriminant 60 not a square)")
+check(all(x > 0 for M in (A2, B2) for row in M for x in row), "A2, B2 positive (primitive)")
+check(det(A2) == 1 and det(B2) == 1, "det A2 = det B2 = 1, so Delta = Z^2 in both cases")
+
+# elements of Q(sqrt15) as pairs (p, q) = p + q sqrt15
+
+
+def qmul(a, b):
+    return (a[0] * b[0] + 15 * a[1] * b[1], a[0] * b[1] + a[1] * b[0])
+
+
+def qadd(a, b):
+    return (a[0] + b[0], a[1] + b[1])
+
+
+LAM = (4, 1)                                   # 4 + sqrt15
+check(qmul(LAM, (4, -1)) == (1, 0), "lambda = 4 + sqrt15 is a unit (norm 1)")
+rA, rB = [(1, 0), (0, 1)], [(3, 0), (0, 1)]    # right eigenvectors (1, sqrt15), (3, sqrt15)
+for M, r in ((A2, rA), (B2, rB)):
+    Mr = [qadd(qmul((M[i][0], 0), r[0]), qmul((M[i][1], 0), r[1])) for i in range(2)]
+    assert Mr == [qmul(LAM, r[0]), qmul(LAM, r[1])]
+check(True, "M r = lambda r for r_A = (1, sqrt15), r_B = (3, sqrt15) (column / right eigenvectors)")
+
+
+def sgn(x, y):
+    """Exact sign of x + y sqrt15 for integers x, y."""
+    if x >= 0 and y >= 0:
+        return 0 if x == y == 0 else 1
+    if x <= 0 and y <= 0:
+        return -1
+    return 1 if (x > 0) == (x * x > 15 * y * y) else -1
+
+
+def cone_sign(r, v):
+    """sign of v . r, r = (r0, sqrt15) with r0 integer."""
+    return sgn(r * v[0], v[1])
+
+
+# positive cone = {v : v M^t >= 0 for some t}; check it equals {v . r > 0} u {0}
+for M, r0 in ((A2, 1), (B2, 3)):
+    for x in range(-15, 16):
+        for y in range(-15, 16):
+            if x == y == 0:
+                continue
+            w, pos = [x, y], False
+            for _ in range(40):
+                if all(c >= 0 for c in w):
+                    pos = True
+                    break
+                w = rowmul(w, M)
+            assert pos == (cone_sign(r0, (x, y)) > 0), (M, x, y)
+check(True, "Delta^+ = {v : v.r > 0} u {0} for A2 and B2 (all 0 < |v| <= 15, 40 steps)")
+
+
+def maps_cone(g, rsrc, rdst):
+    """Does v -> v g carry {v.rsrc > 0} onto {w.rdst > 0}?  Searches for a witness v with
+    |v_i| <= 20, then (for the rare survivors) with |v_i| <= 300; True = no witness found."""
+    return maps_cone_R(g, rsrc, rdst, 20) and maps_cone_R(g, rsrc, rdst, 300)
+
+
+def maps_cone_R(g, rsrc, rdst, R):
+    for x in range(-R, R + 1):
+        for y in range(-R, R + 1):
+            if x == y == 0:
+                continue
+            w = rowmul([x, y], g)
+            if (cone_sign(rsrc, (x, y)) > 0) != (cone_sign(rdst, w) > 0):
+                return False
+    return True
+
+
+E = 6
+gl2 = [[[a, b], [c, d]] for a in range(-E, E + 1) for b in range(-E, E + 1)
+       for c in range(-E, E + 1) for d in range(-E, E + 1) if a * d - b * c in (1, -1)]
+check(maps_cone([[1, 0], [0, 1]], 1, 1) and maps_cone(A2, 1, 1) and maps_cone(B2, 3, 3),
+      "sanity: identity, A2 (on Delta_A2) and B2 (on Delta_B2) preserve the cones")
+check(not any(maps_cone(g, 1, 3) for g in gl2),
+      "no g in GL2(Z) with entries |.| <= %d carries Delta_A2^+ onto Delta_B2^+ (%d matrices)" % (E, len(gl2)))
+check(not any(maps_cone(g, 3, 1) for g in gl2), "nor Delta_B2^+ onto Delta_A2^+")
+self_maps = [g for g in gl2 if maps_cone(g, 1, 1)]
+check(self_maps == [[[1, 0], [0, 1]]],
+      "control: in the same box exactly the identity preserves Delta_A2^+ (cone automorphisms are "
+      "[[a,b],[15b,a]] with a + b sqrt15 a positive unit; the next one is A2 itself)")
+
+# general proof: g r_B = c r_A with g = [[a,b],[c',d]] forces c' = 5b, d = 3a, det = 3a^2 - 5b^2
+check(all((3 * a * a - 5 * b * b) % 5 not in (1, 4) for a in range(5) for b in range(5)),
+      "3a^2 - 5b^2 is never = +-1 mod 5, so det g = +-1 is impossible")
+check(all((x * x - 15 * y * y) % 5 not in (2, 3) for x in range(5) for y in range(5)),
+      "x^2 - 15y^2 = +-3 has no solution mod 5: ideal (3, sqrt15) of Z[sqrt15] is not principal")
+
+
+def cf_surd(P, Q, D, n):
+    """First n partial quotients of (P + sqrt D)/Q (D not a square, Q > 0, Q | D - P^2)."""
+    out, r = [], math.isqrt(D)
+    for _ in range(n):
+        assert Q > 0 and (D - P * P) % Q == 0
+        a = (P + r) // Q              # = floor((P + sqrt D)/Q) since sqrt D is irrational
+        out.append(a)
+        P = a * Q - P
+        Q = (D - P * P) // Q
+    return out
+
+
+cfA = cf_surd(0, 1, 15, 13)          # sqrt15
+cfB = cf_surd(0, 3, 15, 13)          # sqrt15 / 3
+check(cfA == [3] + [1, 6] * 6 and cfB == [1] + [3, 2] * 6,
+      "sqrt15 = [3; (1,6)], sqrt15/3 = [1; (3,2)]: periods (1,6) and (2,3) differ (Serret)")
+
+# the 'only if' remark: Delta_[2] = Delta_[4] = Z[1/2] as ordered subgroups of Q
+check(all(in_delta_A(Fraction(m, 2 ** k)) for m in range(-9, 10) for k in range(8)),
+      "Z[1/2] = Z[1/4] (so Delta_[2] = Delta_[4] as ordered groups, though 2{+-1} != 4{+-1})")
 
 print("ALL CHECKS PASSED")
